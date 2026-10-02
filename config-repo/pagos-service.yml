@@ -1,0 +1,10 @@
+server:
+  port: 8083
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/pagos
+
+pagos:
+  # Simula el límite de la tarjeta: un cobro mayor se rechaza y dispara la compensación de la saga.
+  limite-aprobacion: "1000.00"

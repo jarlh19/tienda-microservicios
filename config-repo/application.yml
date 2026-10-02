@@ -1,0 +1,25 @@
+# Configuración compartida por todos los servicios. El Config Server la entrega junto con la del servicio.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+spring:
+  mvc:
+    # Errores de validación en formato RFC 7807, igual que los del negocio.
+    problemdetails:
+      enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Suficiente para una demo. En un proyecto real el esquema se versiona con Flyway o Liquibase.
+      ddl-auto: update
+  datasource:
+    username: ${DB_USER:tienda}
+    password: ${DB_PASSWORD:tienda}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

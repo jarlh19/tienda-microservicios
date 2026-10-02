@@ -1,0 +1,22 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  profiles:
+    # "native" lee los archivos de una carpeta. En producción se usaría un repositorio git.
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          # Funciona tanto si se arranca desde la raíz del proyecto como desde config-server/.
+          # En Docker se reemplaza con la variable CONFIG_REPO.
+          search-locations: ${CONFIG_REPO:file:./config-repo/,file:../config-repo/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

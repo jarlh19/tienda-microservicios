@@ -1,0 +1,114 @@
+name: tienda
+
+# Credenciales de demo para correr en local. En un despliegue real irían en variables de entorno o en
+# un gestor de secretos, nunca en el repositorio.
+x-base-de-datos: &base-de-datos
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_USER: tienda
+  DB_PASSWORD: tienda
+
+x-config-server: &config-server
+  CONFIG_SERVER_URL: http://config-server:8888
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tienda
+      POSTGRES_PASSWORD: tienda
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./docker/postgres/crear-bases.sql:/docker-entrypoint-initdb.d/crear-bases.sql:ro
+      - datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tienda"]
+      interval: 5s
+      retries: 10
+
+  config-server:
+    build:
+      context: .
+      args:
+        MODULE: config-server
+    environment:
+      CONFIG_REPO: file:/config-repo/
+    volumes:
+      - ./config-repo:/config-repo:ro
+    ports:
+      - "8888:8888"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8888/actuator/health"]
+      interval: 5s
+      retries: 20
+
+  inventario-service:
+    restart: on-failure
+    build:
+      context: .
+      args:
+        MODULE: inventario-service
+    environment:
+      <<: [*base-de-datos, *config-server]
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  pagos-service:
+    restart: on-failure
+    build:
+      context: .
+      args:
+        MODULE: pagos-service
+    environment:
+      <<: [*base-de-datos, *config-server]
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  pedidos-service:
+    restart: on-failure
+    build:
+      context: .
+      args:
+        MODULE: pedidos-service
+    environment:
+      <<: [*base-de-datos, *config-server]
+      INVENTARIO_URL: http://inventario-service:8082
+      PAGOS_URL: http://pagos-service:8083
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+  gateway:
+    restart: on-failure
+    build:
+      context: .
+      args:
+        MODULE: gateway
+    environment:
+      <<: *config-server
+      PEDIDOS_URL: http://pedidos-service:8081
+      INVENTARIO_URL: http://inventario-service:8082
+      PAGOS_URL: http://pagos-service:8083
+    ports:
+      - "8080:8080"
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+volumes:
+  datos:

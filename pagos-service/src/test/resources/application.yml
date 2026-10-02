@@ -1,0 +1,16 @@
+# En las pruebas no hay Config Server ni PostgreSQL: este archivo reemplaza al de src/main/resources
+# y Spring Boot levanta una base H2 en memoria.
+spring:
+  application:
+    name: pagos-service
+  cloud:
+    config:
+      enabled: false
+  mvc:
+    problemdetails:
+      enabled: true
+  jpa:
+    open-in-view: false
+
+pagos:
+  limite-aprobacion: "1000.00"

@@ -1,0 +1,11 @@
+# En las pruebas no hay Config Server: este archivo reemplaza al de src/main/resources y carga
+# directamente las rutas reales de config-repo/gateway.yml. La prueba apunta INVENTARIO_URL a un
+# servidor falso.
+spring:
+  application:
+    name: gateway
+  cloud:
+    config:
+      enabled: false
+  config:
+    import: file:../config-repo/gateway.yml

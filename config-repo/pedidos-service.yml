@@ -1,0 +1,56 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/pedidos
+
+servicios:
+  inventario:
+    url: ${INVENTARIO_URL:http://localhost:8082}
+  pagos:
+    url: ${PAGOS_URL:http://localhost:8083}
+  timeout:
+    conexion: 1s
+    lectura: 2s
+
+saga:
+  # Cada cuánto se reintentan las compensaciones pendientes y se revisan sagas interrumpidas.
+  reintento-cada: 10s
+  # Un pedido que lleva más que esto en un paso intermedio se considera interrumpido.
+  pedido-colgado-tras: 60s
+  # Tras estos intentos fallidos de compensar, se registra un ERROR (unos 5 minutos con 10 s).
+  alertar-tras-intentos: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
+        register-health-indicator: true
+        # Un 4xx es un error del negocio o del cliente, no una caída: no debe abrir el circuito.
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      inventario:
+        base-config: default
+      pagos:
+        base-config: default

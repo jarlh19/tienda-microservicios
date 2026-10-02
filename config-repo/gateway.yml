@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: pedidos
+              uri: ${PEDIDOS_URL:http://localhost:8081}
+              predicates:
+                - Path=/api/pedidos/**
+            # De inventario y pagos solo se publican las consultas. Reservar, liberar, cobrar y
+            # reembolsar los llama pedidos-service por dentro: si pasaran por el gateway, cualquiera
+            # podría reembolsar un pedido confirmado.
+            - id: inventario
+              uri: ${INVENTARIO_URL:http://localhost:8082}
+              predicates:
+                - Path=/api/inventario/**
+                - Method=GET
+            - id: pagos
+              uri: ${PAGOS_URL:http://localhost:8083}
+              predicates:
+                - Path=/api/pagos/**
+                - Method=GET
+          default-filters:
+            - AddResponseHeader=X-Servido-Por, gateway
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      # Permite ver las rutas en /actuator/gateway/routes, sin poder modificarlas.
+      access: read-only

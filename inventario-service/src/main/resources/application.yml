@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: inventario-service
+  config:
+    # El puerto, la base de datos y lo demás llegan desde config-repo/inventario-service.yml.
+    import: configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        max-attempts: 20
+        initial-interval: 1500
+        max-interval: 5000

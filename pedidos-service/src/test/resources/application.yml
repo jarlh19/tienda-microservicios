@@ -1,0 +1,49 @@
+# En las pruebas no hay Config Server ni PostgreSQL: este archivo reemplaza al de src/main/resources
+# y Spring Boot levanta una base H2 en memoria.
+spring:
+  application:
+    name: pedidos-service
+  cloud:
+    config:
+      enabled: false
+  mvc:
+    problemdetails:
+      enabled: true
+  jpa:
+    open-in-view: false
+
+servicios:
+  # Las pruebas que necesitan un servicio real levantan uno falso y reemplazan estas URLs.
+  inventario:
+    url: http://localhost:9
+  pagos:
+    url: http://localhost:9
+  timeout:
+    conexion: 500ms
+    lectura: 1s
+
+saga:
+  # Las pruebas llaman a los reintentos a mano, sin el proceso programado.
+  reintentos-automaticos: false
+  reintento-cada: 10s
+  pedido-colgado-tras: 60s
+  alertar-tras-intentos: 30
+
+# Mismo circuit breaker que config-repo/pedidos-service.yml.
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 2
+        ignore-exceptions:
+          - org.springframework.web.client.HttpClientErrorException
+    instances:
+      inventario:
+        base-config: default
+      pagos:
+        base-config: default

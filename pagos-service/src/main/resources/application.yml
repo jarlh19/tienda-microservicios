@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: pagos-service
+  config:
+    # El puerto, la base de datos y el límite de aprobación llegan desde config-repo/pagos-service.yml.
+    import: configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  cloud:
+    config:
+      fail-fast: true
+      retry:
+        max-attempts: 20
+        initial-interval: 1500
+        max-interval: 5000

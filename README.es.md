@@ -2,6 +2,8 @@
 
 [English](README.md) · **Español**
 
+[![CI](https://github.com/jarlh19/tienda-microservicios/actions/workflows/ci.yml/badge.svg)](https://github.com/jarlh19/tienda-microservicios/actions/workflows/ci.yml)
+
 Una tienda simple dividida en microservicios con **Spring Boot 3.5** y **Spring Cloud 2025.0**. Muestra
 cuatro patrones con casos que se pueden reproducir: **Config Server**, **API Gateway**, **Circuit
 Breaker** (Resilience4j) y **Saga** orquestada con compensaciones.

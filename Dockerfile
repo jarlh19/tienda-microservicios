@@ -9,7 +9,7 @@ ARG MODULE
 RUN --mount=type=cache,target=/root/.m2,sharing=locked \
     mvn -B -q -pl ${MODULE} -am package -DskipTests
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 ARG MODULE
 WORKDIR /app
 COPY --from=build /src/${MODULE}/target/${MODULE}-*.jar app.jar
